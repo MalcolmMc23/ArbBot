@@ -7,29 +7,33 @@ const web3 = new Web3(`https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHE
 
 // web3.eth.getBlockNumber().then(console.log);
 
+const account1 = web3.eth.accounts.privateKeyToAccount(process.env.ACCOUNT_1_PRIV)
+web3.eth.accounts.wallet.add(account1)
 
-const account = web3.eth.accounts.wallet.add(process.env.ACCOUNT_5_PRIV) // priv key
+const account5 = web3.eth.accounts.privateKeyToAccount(process.env.ACCOUNT_5_PRIV)
+web3.eth.accounts.wallet.add(account5)
 
-
-const senderPubAdress = "0xA65fb8FCDD3AF2eD82C5A07E4F1D29a28E58B76C"
-const resiverPubAdress = account[0].address;
+const senderPubAdress = account1[0].address
+const resiverPubAdress = account5[0].address;
 console.log(`The sender: ${senderPubAdress} has ${await web3.eth.getBalance(senderPubAdress)}`);
 console.log(`The resiver:${resiverPubAdress} has: ${await web3.eth.getBalance(resiverPubAdress)}`);
 
 
 const tx = {
-  from: senderPubAdress,
   to: resiverPubAdress,
   value: web3.utils.toWei('.00001', 'ether'),
-  maxFeePerGas: web3.utils.toWei('.001', 'ether'),
-  gas: 21000,  // Typical gas limit for a straightforward transfer
-  maxPriorityFeePerGas: web3.utils.toWei('2', 'gwei'),  // Adjust based on current network conditions
-  maxFeePerGas: web3.utils.toWei('100', 'gwei')  // This should also be based on current conditions
+  gas: 21000, // Gas limit - set appropriately
+  gasPrice: web3.utils.toWei('30', 'gwei'), // Gas price - set appropriately
 }
 
 
-const txReceipt = await web3.eth.sendTransaction(tx);
-console.log('Tx hash:', txReceipt.transactionHash)
+web3.eth.accounts.signTransaction(tx, account1.privateKey)
+  .then(signedTx => web3.eth.sendSignedTransaction(signedTx.rawTransaction))
+  .then(receipt => console.log('Transaction receipt:', receipt))
+  .catch(err => console.error(err));
+
+// const txReceipt = await web3.eth.signTransaction(tx);
+// console.log('Tx hash:', txReceipt.transactionHash)
 
 
 console.log(`The sender: ${senderPubAdress} has ${await web3.eth.getBalance(senderPubAdress)}`);
